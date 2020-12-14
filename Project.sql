@@ -12,10 +12,7 @@ CREATE TABLE Wizard(
     wandNumber VARCHAR(40),
     mSchool VARCHAR(40),
     house VARCHAR(40),
-    CHECK((mSchool = null OR house = null) AND NOT (mSchool = null AND house = null)),
-    FOREIGN KEY (mSchool) REFERENCES homogeneousSchool(sName),
-    FOREIGN KEY (wName) REFERENCES Character(cName),
-    FOREIGN KEY
+    FOREIGN KEY (wName) REFERENCES Character(cName)
 );
 
 CREATE TABLE NonWizard(
@@ -48,8 +45,10 @@ CREATE TABLE School(
 );
 
 CREATE TABLE homogeneousSchool(
-    sName VARCHAR(40) PRIMARY KEY,
+    sName VARCHAR(40) ,
+    wName VARCHAR(40) UNIQUE ,
     FOREIGN KEY (sName) REFERENCES School(sName)
+    PRIMARY KEY (sName, WName)
 );
 
 CREATE TABLE heterogeneousSchool(
@@ -61,12 +60,30 @@ CREATE TABLE House(
     sName VARCHAR(40),
     hName VARCHAR(40),
     color VARCHAR(40),
-    headOfHouse VARCHAR(40) UNIQUE,
+   --headOfHouse VARCHAR(40) UNIQUE NOT NULL ,
     numOfStudents INT,
     PRIMARY KEY (sName, hName),
     CHECK (numOfStudents != 0),
     FOREIGN KEY (sName) REFERENCES School(sName)
+    FOREIGN KEY (headOfHouse) REFERENCES Wizard(wName)
 );
+
+CREATE TABLE attendsHouse(
+    hName VARCHAR(40),
+    wName VARCHAR (40),
+    color VARCHAR(40),
+    headOfHouse VARCHAR(40) ,
+    numOfStudents INT,
+    PRIMARY KEY (sName, hName),
+    CHECK (numOfStudents != 0),
+    FOREIGN KEY (hName) REFERENCES House
+);
+
+CREATE TABLE headsHouse(
+    hName VARCHAR(40) PRIMARY KEY,
+    headOfHouse VARCHAR(40) UNIQUE,
+    FOREIGN KEY (hName, headOfHouse) REFERENCES attendsHouse(hName, wName)
+)
 
 CREATE TABLE teamOfYear(
     hName VARCHAR(40),
