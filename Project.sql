@@ -3,6 +3,7 @@ CREATE TABLE Character(
     description VARCHAR(40),
     hairColor VARCHAR(40),
     characterType CHAR NOT NULL,
+
     CHECK(characterType = 'W' OR characterType = 'N')
 );
 
@@ -71,8 +72,22 @@ CREATE TABLE teamOfYear(
     hName VARCHAR(40),
     year YEAR,
     broomModel VARCHAR(40),
+    player1 VARCHAR (40) NOT NULL,
+    player2 VARCHAR (40) NOT NULL,
+    player3 VARCHAR (40) NOT NULL,
+    player4 VARCHAR (40) NOT NULL,
+    player5 VARCHAR (40) NOT NULL,
+    player6 VARCHAR (40) NOT NULL,
+    player7 VARCHAR (40) NOT NULL,
     PRIMARY KEY (hName, year),
-    FOREIGN KEY (hName) REFERENCES House(hName)
+    FOREIGN KEY (hName) REFERENCES House(hName),
+    FOREIGN KEY (player1) REFERENCES plays(wName),
+    FOREIGN KEY (player2) REFERENCES plays(wName),
+    FOREIGN KEY (player3) REFERENCES plays(wName),
+    FOREIGN KEY (player4) REFERENCES plays(wName),
+    FOREIGN KEY (player5) REFERENCES plays(wName),
+    FOREIGN KEY (player6) REFERENCES plays(wName),
+    FOREIGN KEY (player7) REFERENCES plays(wName)
 );
 
 CREATE TABLE feeling(
@@ -121,5 +136,22 @@ CREATE TABLE attendsHouse(
 )*/
 
 CREATE TABLE plays(
+    wName VARCHAR (40) PRIMARY KEY,
+    position VARCHAR(40),
+    CHECK(position = 'seeker' OR position = 'chaser'
+    OR position = 'beater' OR position = 'keeper'),
+    FOREIGN KEY (wName) REFERENCES Wizard(wName)
+)
 
+CREATE TABLE hostGame(
+    hostHouse VARCHAR(40),
+    hostYear YEAR,
+    hostedHouse VARCHAR(40),
+    hostedYear YEAR,
+    hostScore VARCHAR(40),
+    hostedScore VARCHAR(40),
+    PRIMARY key (hostHouse, hostYear, hostedHouse, hostedYear),
+    CHECK(hostYear = hostedYear),
+    FOREIGN KEY (hostHouse, hostYear) REFERENCES teamOfYear(hName, year),
+    FOREIGN KEY (hostedHouse, hostedYear) REFERENCES teamOfYear(hName, year),
 )
