@@ -2,24 +2,124 @@ CREATE TABLE Character(
     cName VARCHAR(40) PRIMARY KEY,
     description VARCHAR(40),
     hairColor VARCHAR(40),
-    characterType CHAR NOT NULL,
+    characterType CHAR NOT NULL, --assume that this is consistent with the appropriate tables
 
     CHECK(characterType = 'W' OR characterType = 'N')
 );
 
+--relationship between two characters
+CREATE TABLE feeling(
+    cNameOne VARCHAR(40),
+    cNameTwo VARCHAR(40),
+    feeling VARCHAR(40),
+    peakMoment VARCHAR(40),
+    PRIMARY KEY (cNameOne, cNameTwo), --therefore only one relationship can exist from one character to another
+    --additionally, because the order is important relationships do not have to be mutual
+    CHECK (feeling = 'hate' OR feeling = 'love'),
+    FOREIGN KEY (cNameOne) REFERENCES Character(cName),
+    FOREIGN KEY (cNameTwo) REFERENCES Character(cName)
+);
+--note: it is impossible to ensure using DDL that a school has at least one student in it using DDL
+--because that is dependent on the table attendsSchool. But there, school is not a unique value and
+--cannot be. Therefore, a foreign key cannot be created.
+CREATE TABLE School(
+    sName VARCHAR(40) PRIMARY KEY,
+    sType CHAR NOT NULL,
+    CHECK (sType = 'M' OR sType = 'T'), -- M for homogeneous and T for heterogeneous Assume this field corresponds
+    -- to the tables designated for homogeneous and heterogeneous schools
+);
+
+--is a school
+CREATE TABLE homogeneousSchool(
+                                  sName VARCHAR(40) PRIMARY KEY,
+                                  FOREIGN KEY (sName) REFERENCES School(sName)
+);
+
+--is a school
+CREATE TABLE heterogeneousSchool(
+                                    sName VARCHAR(40) PRIMARY KEY,
+                                    FOREIGN KEY (sName) REFERENCES School(sName)
+);
+
+--This table is not well represented in the ER Diagram but addresses an issue that is unresolvable
+--in an ERD. Because every wizard must attend a school, every character that attends a school must
+--be a wizard. Therefore, attending a school is equivalent to being a wizard and this design
+--is legitimate.
+CREATE TABLE attendsSchool(
+    wName VARCHAR(40) UNIQUE, --can only attend one school
+    school VARCHAR(40),
+    PRIMARY KEY (wName, school),
+    FOREIGN KEY (school) REFERENCES School(sName)
+);
+
+--relationship between house and wizards. Ensures that at least one wizard in is a house
+CREATE TABLE attendsHouse(
+    wName VARCHAR (40) UNIQUE , --wizard can only be in one house
+    school VARCHAR(40) NOT NULL,
+    hName VARCHAR(40),
+    PRIMARY KEY (wName, hName),
+    FOREIGN KEY (wName, school) REFERENCES attendsSchool(wName, school),
+    FOREIGN KEY (school) REFERENCES heterogeneousSchool(sName) --enforce that this school is in fact a heterogeneous school
+);
+
+--Enforces that headOfHouse is in house
+CREATE TABLE headsHouse(
+    hName VARCHAR(40) PRIMARY KEY,
+    headOfHouse VARCHAR(40) UNIQUE,
+    FOREIGN KEY (hName, headOfHouse) REFERENCES attendsHouse(hName, wName)
+);
+
+--weak entity of heterogeneous school
+CREATE TABLE House(
+    sName VARCHAR(40),
+    hName VARCHAR(40),
+    color VARCHAR(40),
+    numOfStudents INT,
+    PRIMARY KEY (sName, hName),
+    CHECK (numOfStudents != 0),
+    FOREIGN KEY (sName) REFERENCES heterogeneousSchool(sName), --enforces that only heterogeneous schools have houses
+    FOREIGN KEY (hName) REFERENCES headsHouse(hName) --ensures that only houses with someone in them are created
+);
+
+--Only wizards that are already at a school/house and are characters are created
 CREATE TABLE Wizard(
     wName VARCHAR(40) PRIMARY KEY,
     wandNumber VARCHAR(40),
-    mSchool VARCHAR(40),
-    house VARCHAR(40),
-    FOREIGN KEY (wName) REFERENCES Character(cName)
+    FOREIGN KEY (wName) REFERENCES Character(cName),
+    FOREIGN KEY (wName) REFERENCES attendsSchool(wName)
 );
 
+--relationship between wizard and school
+CREATE TABLE schoolManager(
+    sName VARCHAR(40) PRIMARY KEY,
+    managerName VARCHAR(40) UNIQUE, --one wizard can manage only one school
+    FOREIGN KEY (sName) REFERENCES School,
+    FOREIGN KEY (managerName) REFERENCES Wizard(wName)
+);
+
+--is a character
 CREATE TABLE NonWizard(
     nwName VARCHAR(40) PRIMARY KEY,
     FOREIGN KEY (nwName) REFERENCES Character(cName)
 );
 
+--relationship between non-wizard to wizard
+CREATE TABLE loyalty(
+    nwName VARCHAR(40),
+    wName VARCHAR(40) UNIQUE, --non-wizard can only be loyal to one wizard at most
+    PRIMARY KEY (nwName, wName),
+    FOREIGN KEY (nwName) REFERENCES NonWizard(nwName),
+    FOREIGN KEY (wName) REFERENCES Wizard(wName)
+);
+
+CREATE TABLE Spell(
+    enchantment VARCHAR(40) PRIMARY KEY,
+    difficulty INT,
+    description VARCHAR(40),
+    CHECK (difficulty <= 5 AND difficulty >= 1)
+);
+
+--weak entity of wizard and in relationship with Spell
 CREATE TABLE MagicAct(
     wName VARCHAR(40),
     time TIMESTAMP,
@@ -29,62 +129,27 @@ CREATE TABLE MagicAct(
     FOREIGN KEY (spell) REFERENCES Spell(enchantment)
 );
 
-CREATE TABLE Spell(
-    enchantment VARCHAR(40) PRIMARY KEY,
-    difficulty INT,
-    description VARCHAR(40),
-    CHECK (difficulty <= 5 AND difficulty <= 1)
+/* unneccesary because this was absorbed within magicAct. erase if you too do not think that this is important
+CREATE TABLE cast(
+    wName VARCHAR(40),
+    time TIMESTAMP,
+    enchantment VARCHAR(40),
+    PRIMARY KEY (wName, time, enchantment),
+    FOREIGN KEY (wName) REFERENCES Wizard(wName),
+    FOREIGN KEY (time) REFERENCES MagicAct(time),
+    FOREIGN KEY (enchantment) REFERENCES Spell(enchantment)
+);
+ */
+
+--only for wizards
+CREATE TABLE plays(
+    wName VARCHAR (40) PRIMARY KEY,
+    position VARCHAR(40),
+    CHECK(position = 'seeker' OR position = 'chaser' OR position = 'beater' OR position = 'keeper'),
+    FOREIGN KEY (wName) REFERENCES Wizard(wName)
 );
 
-CREATE TABLE School(
-    sName VARCHAR(40) PRIMARY KEY,
-    manager VARCHAR(40) UNIQUE,
-    sType CHAR NOT NULL,
-    CHECK (sType == 'M' OR sType=='T') -- M for homogeneous and T for heterogeneous
-    FOREIGN KEY (manager) REFERENCES Wizard(wName)
-);
-
-CREATE TABLE homogeneousSchool(
-    sName VARCHAR(40) ,
-    wName VARCHAR(40) UNIQUE ,
-    FOREIGN KEY (sName) REFERENCES School(sName)
-    PRIMARY KEY (sName, WName)
-);
-
-CREATE TABLE heterogeneousSchool(
-    sName VARCHAR(40) PRIMARY KEY,
-    FOREIGN KEY (sName) REFERENCES School(sName)
-);
-
-CREATE TABLE House(
-    sName VARCHAR(40),
-    hName VARCHAR(40),
-    color VARCHAR(40),
-   --headOfHouse VARCHAR(40) UNIQUE NOT NULL ,
-    numOfStudents INT,
-    PRIMARY KEY (sName, hName),
-    CHECK (numOfStudents != 0),
-    FOREIGN KEY (sName) REFERENCES School(sName)
-    FOREIGN KEY (headOfHouse) REFERENCES Wizard(wName)
-);
-
-CREATE TABLE attendsHouse(
-    hName VARCHAR(40),
-    wName VARCHAR (40),
-    color VARCHAR(40),
-    headOfHouse VARCHAR(40) ,
-    numOfStudents INT,
-    PRIMARY KEY (sName, hName),
-    CHECK (numOfStudents != 0),
-    FOREIGN KEY (hName) REFERENCES House
-);
-
-CREATE TABLE headsHouse(
-    hName VARCHAR(40) PRIMARY KEY,
-    headOfHouse VARCHAR(40) UNIQUE,
-    FOREIGN KEY (hName, headOfHouse) REFERENCES attendsHouse(hName, wName)
-)
-
+--the NOT NULL fields of player 1-7 ensures that exactly 7 players are associated with each year's team
 CREATE TABLE teamOfYear(
     hName VARCHAR(40),
     year YEAR,
@@ -107,35 +172,6 @@ CREATE TABLE teamOfYear(
     FOREIGN KEY (player7) REFERENCES plays(wName)
 );
 
-CREATE TABLE feeling(
-    cNameOne VARCHAR(40),
-    cNameTwo VARCHAR(40),
-    feeling VARCHAR(40),
-    peakMoment VARCHAR(40),
-    PRIMARY KEY (cNameOne, cNameTwo),
-    FOREIGN KEY (cNameOne) REFERENCES Character(cName),
-    FOREIGN KEY (cNameTwo) REFERENCES Character(cName),
-    CHECK (feeling = 'hate' OR feeling = 'love')
-);
-
-CREATE TABLE loyalty(
-    nwName VARCHAR(40),
-    wName VARCHAR(40),
-    PRIMARY KEY (nwName, wName),
-    FOREIGN KEY (nwName) REFERENCES NonWizard(nwName),
-    FOREIGN KEY (wName) REFERENCES Wizard(wName)
-);
-
-CREATE TABLE cast(
-    wName VARCHAR(40),
-    time TIMESTAMP,
-    enchantment VARCHAR(40),
-    PRIMARY KEY (wName, time, enchantment),
-    FOREIGN KEY (wName) REFERENCES Wizard(wName),
-    FOREIGN KEY (time) REFERENCES MagicAct(time),
-    FOREIGN KEY (enchantment) REFERENCES Spell(enchantment)
-);
-
 CREATE TABLE attendsHomogeneousSchool(
     wName VARCHAR(40),
     sName VARCHAR(40),
@@ -143,23 +179,8 @@ CREATE TABLE attendsHomogeneousSchool(
     FOREIGN KEY (wName) REFERENCES  Wizard(wName),
     FOREIGN KEY (sName) REFERENCES homogeneousSchool(sName)
 );
-/*
-CREATE TABLE attendsHouse(
-    wName VARCHAR(40),
-    hName VARCHAR(40),
-    PRIMARY KEY (wName, hName),
-    FOREIGN KEY (wName) REFERENCES  Wizard(wName),
-    FOREIGN KEY (hName) REFERENCES House(sName)
-)*/
 
-CREATE TABLE plays(
-    wName VARCHAR (40) PRIMARY KEY,
-    position VARCHAR(40),
-    CHECK(position = 'seeker' OR position = 'chaser'
-    OR position = 'beater' OR position = 'keeper'),
-    FOREIGN KEY (wName) REFERENCES Wizard(wName)
-)
-
+--relationship between two teams
 CREATE TABLE hostGame(
     hostHouse VARCHAR(40),
     hostYear YEAR,
@@ -167,8 +188,23 @@ CREATE TABLE hostGame(
     hostedYear YEAR,
     hostScore VARCHAR(40),
     hostedScore VARCHAR(40),
-    PRIMARY key (hostHouse, hostYear, hostedHouse, hostedYear),
-    CHECK(hostYear = hostedYear),
+    PRIMARY key (hostHouse, hostYear, hostedHouse, hostedYear), --ensures that this host, hosted only appears once
+    CHECK(hostYear = hostedYear), --ensures that only teams of the same year play against one another
     FOREIGN KEY (hostHouse, hostYear) REFERENCES teamOfYear(hName, year),
     FOREIGN KEY (hostedHouse, hostedYear) REFERENCES teamOfYear(hName, year),
 )
+
+CREATE TABLE spectated(
+    wName VARCHAR(40),
+    hostHouse VARCHAR(40),
+    hostYear YEAR,
+    hostedHouse VARCHAR(40),
+    hostedYear YEAR,
+    rating INT,
+    PRIMARY KEY(wName, hostHouse, hostYear, hostedHouse, hostedYear),
+    CHECK(rating >= 1 AND rating <=7),
+    FOREIGN KEY (wName) REFERENCES Wizard(wName),
+    FOREIGN KEY (hostHouse, hostYear) REFERENCES teamOfYear(hName, year),
+    FOREIGN KEY (hostedHouse, hostedYear) REFERENCES teamOfYear(hName, year),
+)
+
