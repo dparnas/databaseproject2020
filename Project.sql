@@ -1,16 +1,20 @@
 CREATE TABLE Character(
     cName VARCHAR(40) PRIMARY KEY,
     description VARCHAR(40),
-    hairColor VARCHAR(40)
+    hairColor VARCHAR(40),
+    characterType CHAR NOT NULL,
+    CHECK(characterType = 'W' OR characterType = 'N')
 );
 
 CREATE TABLE Wizard(
     wName VARCHAR(40) PRIMARY KEY,
     wandNumber VARCHAR(40),
-    school VARCHAR(40) NOT NULL,
-    --house VARCHAR(40),
-    FOREIGN KEY (school) REFERENCES School(sName),
-    FOREIGN KEY (wName) REFERENCES Character(cName)
+    mSchool VARCHAR(40),
+    house VARCHAR(40),
+    CHECK((mSchool = null OR house = null) AND NOT (mSchool = null AND house = null)),
+    FOREIGN KEY (mSchool) REFERENCES homogeneousSchool(sName),
+    FOREIGN KEY (wName) REFERENCES Character(cName),
+    FOREIGN KEY
 );
 
 CREATE TABLE NonWizard(
@@ -21,8 +25,10 @@ CREATE TABLE NonWizard(
 CREATE TABLE MagicAct(
     wName VARCHAR(40),
     time TIMESTAMP,
+    spell VARCHAR(40) NOT NULL,
     PRIMARY KEY (wName, time),
-    FOREIGN KEY (wName) REFERENCES Wizard(wName)
+    FOREIGN KEY (wName) REFERENCES Wizard(wName),
+    FOREIGN KEY (spell) REFERENCES Spell(enchantment)
 );
 
 CREATE TABLE Spell(
@@ -35,6 +41,8 @@ CREATE TABLE Spell(
 CREATE TABLE School(
     sName VARCHAR(40) PRIMARY KEY,
     manager VARCHAR(40) UNIQUE,
+    sType CHAR NOT NULL,
+    CHECK (sType == 'M' OR sType=='T') -- M for homogeneous and T for heterogeneous
     FOREIGN KEY (manager) REFERENCES Wizard(wName)
 );
 
@@ -52,6 +60,7 @@ CREATE TABLE House(
     sName VARCHAR(40),
     hName VARCHAR(40),
     color VARCHAR(40),
+    headOfHouse VARCHAR(40) UNIQUE,
     numOfStudents INT,
     PRIMARY KEY (sName, hName),
     CHECK (numOfStudents != 0),
@@ -110,3 +119,7 @@ CREATE TABLE attendsHouse(
     FOREIGN KEY (wName) REFERENCES  Wizard(wName),
     FOREIGN KEY (hName) REFERENCES House(sName)
 )*/
+
+CREATE TABLE plays(
+
+)
