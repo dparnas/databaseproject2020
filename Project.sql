@@ -71,11 +71,11 @@ CREATE TABLE headsHouse(
 
 --weak entity of heterogeneous school
 CREATE TABLE House(
-                      sName VARCHAR(40),
+                      sName VARCHAR(40) Not NULL ,
                       hName VARCHAR(40),
                       color VARCHAR(40),
                       numOfStudents INT,
-                      PRIMARY KEY (sName, hName),
+                      PRIMARY KEY (hName),
                       CHECK (numOfStudents != 0),
                       FOREIGN KEY (sName) REFERENCES heterogeneousSchool(sName), --enforces that only heterogeneous schools have houses
                       FOREIGN KEY (hName) REFERENCES headsHouse(hName) --ensures that only houses with someone in them are created
@@ -160,7 +160,6 @@ CREATE TABLE plays(
 --the NOT NULL fields of player 1-7 ensures that exactly 7 players are associated with each year's team
 CREATE TABLE teamOfYear(
                            hName VARCHAR(40),
-                           sName VARCHAR(40),
                            year DATE,
                            broomModel VARCHAR(40),
                            player1 VARCHAR (40) NOT NULL,
@@ -170,8 +169,8 @@ CREATE TABLE teamOfYear(
                            player5 VARCHAR (40) NOT NULL,
                            player6 VARCHAR (40) NOT NULL,
                            player7 VARCHAR (40) NOT NULL,
-                           PRIMARY KEY (sName,hName, year),
-                           FOREIGN KEY (sName, hName) REFERENCES House(sName, hName),
+                           PRIMARY KEY (hName, year),
+                           FOREIGN KEY (hName) REFERENCES House(hName),
                            FOREIGN KEY (player1) REFERENCES attendsHouse(wName),
                            FOREIGN KEY (player2) REFERENCES attendsHouse(wName),
                            FOREIGN KEY (player3) REFERENCES attendsHouse(wName),
@@ -185,32 +184,28 @@ CREATE TABLE teamOfYear(
 
 --relationship between two teams
 CREATE TABLE Game(
-                     sHost VARCHAR(40),
                      hostHouse VARCHAR(40),
                      hostYear DATE,
                      guestHouse VARCHAR(40),
-                     sGuest VARCHAR(40),
                      guestYear DATE,
                      hostScore VARCHAR(40),
                      guestScore VARCHAR(40),
-                     PRIMARY key (sHost, hostHouse, hostYear,sGuest, guestHouse, guestYear), --ensures that this host, hosted only appears once
+                     PRIMARY key (hostHouse, hostYear, guestHouse, guestYear), --ensures that this host, hosted only appears once
                      CHECK(hostYear = guestYear), --ensures that only teams of the same year play against one another
-                     FOREIGN KEY (sHost, hostHouse, hostYear) REFERENCES teamOfYear(sName, hName, year),
-                     FOREIGN KEY (sGuest, guestHouse, guestYear) REFERENCES teamOfYear(sName, hName, year),
+                     FOREIGN KEY (hostHouse, hostYear) REFERENCES teamOfYear(hName, year),
+                     FOREIGN KEY (guestHouse, guestYear) REFERENCES teamOfYear(hName, year),
 );
 
 CREATE TABLE spectated(
                           cName VARCHAR(40),
-                          sHost VARCHAR(40),
                           hostHouse VARCHAR(40),
                           hostYear DATE,
-                          sGuest VARCHAR(40),
                           guestHouse VARCHAR(40),
                           guestYear DATE,
                           rating INT,
-                          PRIMARY KEY(cName, sHost, hostHouse, hostYear, sGuest, guestHouse, guestYear),
+                          PRIMARY KEY(cName,hostHouse, hostYear,guestHouse, guestYear),
                           CHECK(rating >= 1 AND rating <=7),
                           FOREIGN KEY (cName) REFERENCES Character(cName),
-                          FOREIGN KEY (sHost, hostHouse, hostYear, sGuest, guestHouse, guestYear)
-                              REFERENCES Game(sHost, hostHouse, hostYear,sGuest, guestHouse, guestYear)
+                          FOREIGN KEY (hostHouse, hostYear,guestHouse, guestYear)
+                              REFERENCES Game(hostHouse, hostYear,guestHouse, guestYear)
 );
