@@ -1,0 +1,17 @@
+INSERT INTO Character (cName, description, hairColor, characterType) VALUES ('dovid', 'ganster', 'red', 'W');
+INSERT INTO Character (cName, description, hairColor, characterType) VALUES ('Tamir', 'ganster', 'red', 'N');
+INSERT INTO Character (cName, description, hairColor, characterType) VALUES ('joe', 'ganster', 'red', 'N');
+INSERT INTO Character (cName, description, hairColor, characterType) VALUES ('Avi', 'ganster', 'red', 'N');
+INSERT INTO Character (cName, description, hairColor, characterType) VALUES ('Rav', 'ganster', 'red', 'N');
+INSERT INTO Character (cName, description, hairColor, characterType) VALUES ('Gal', 'ganster', 'red', 'W');
+INSERT INTO Character (cName, description, hairColor, characterType) VALUES ('Dana', 'ganster', 'red', 'W');
+INSERT INTO School(sName, sType) VALUES ('Technion', 'H');
+INSERT INTO School(sName, sType) VALUES ('SAR', 'T');
+INSERT INTO homogeneousSchool(sName) VALUES ('Technion');
+INSERT INTO heterogeneousSchool(sName) VALUES ('SAR');
+INSERT INTO attendsSchool(wName, school) VALUES ('dovid','SAR');
+INSERT INTO attendsSchool(wName, school) VALUES ('Gal','Technion');
+INSERT INTO attendsSchool(wName, school) VALUES ('Dana','Technion');
+INSERT INTO attendsSchool(wName, school) VALUES ('Dana','Technion');
+INSERT INTO Wizard(wName, wandNumber) VALUES ('Dana','123');
+INSERT INTO schoolManager(sName, managerName) VALUES ('Technion','Dovid');
