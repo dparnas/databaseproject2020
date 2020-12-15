@@ -3,14 +3,14 @@ as
 SELECT SM.managerName, MIN(MA.time) as FirstMagic
 FROM schoolManager as SM,MagicAct as MA
 WHERE  EXISTS
-(SELECT wName
- FROM loyalty WHERE loyalty.wName = SM.wName
- GROUP BY wName
- HAVING COUNT (nwName) > 9
-) AND
-SM.wName = MA.wName
+    (SELECT *
+     FROM loyalty WHERE loyalty.wName = SM.managerName
+     GROUP BY wName
+     HAVING COUNT (nwName) > 9
+    ) AND
+        SM.managerName = MA.wName
 GROUP BY SM.managerName;
-HAVING COUNT (MA.time) > 0
+
 
 CREATE VIEW doucheWizard_And_UsefulMagic
 as
